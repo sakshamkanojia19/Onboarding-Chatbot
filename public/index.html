@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Onboarding Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .chat-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 800px;
+            height: 80vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 20px 20px 0 0;
+        }
+
+        .chat-header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .chat-header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+
+        .message {
+            display: flex;
+            margin-bottom: 15px;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            margin: 0 10px;
+        }
+
+        .message.bot .message-avatar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .message.user .message-avatar {
+            background: #e9ecef;
+            order: 2;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 15px 20px;
+            border-radius: 20px;
+            line-height: 1.5;
+            word-wrap: break-word;
+        }
+
+        .message.bot .message-content {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 20px 20px 20px 5px;
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 20px 20px 5px 20px;
+        }
+
+        .typing-indicator {
+            display: none;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .typing-dots {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 20px 20px 20px 5px;
+            margin-left: 50px;
+        }
+
+        .typing-dots span {
+            height: 8px;
+            width: 8px;
+            background: #667eea;
+            border-radius: 50%;
+            display: inline-block;
+            margin: 0 2px;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+
+        .typing-dots span:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+        .chat-input {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input textarea {
+            flex: 1;
+            border: 2px solid #e9ecef;
+            border-radius: 25px;
+            padding: 15px 20px;
+            font-family: inherit;
+            font-size: 14px;
+            resize: none;
+            outline: none;
+            transition: border-color 0.3s ease;
+            max-height: 100px;
+        }
+
+        .chat-input textarea:focus {
+            border-color: #667eea;
+        }
+
+        .send-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: transform 0.2s ease;
+        }
+
+        .send-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+
+        .status-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 10px 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            border-left: 4px solid #28a745;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 10px 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            border-left: 4px solid #dc3545;
+        }
+
+        @media (max-width: 768px) {
+            .chat-container {
+                height: 90vh;
+                margin: 10px;
+            }
+            
+            .message-content {
+                max-width: 85%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h1>🤖 Smart Onboarding Assistant by Wytlabs</h1>
+            <p>Let's get to know you and your business better!</p>
+        </div>
+        
+        <div id="chatMessages" class="chat-messages">
+            <!-- Messages will be added here dynamically -->
+        </div>
+        
+        <div id="typingIndicator" class="typing-indicator">
+            <div class="typing-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+        
+        <div class="chat-input">
+            <textarea id="messageInput" placeholder="Type your message here..." rows="1"></textarea>
+            <button id="sendBtn" class="send-btn">➤</button>
+        </div>
+    </div>
+
+
+
+<script>
+ 
+   class SmartOnboardingAssistant {
+    constructor() {
+        // Your OpenAI API key remains here for the chatbot's conversation logic.
+       
+        // Configuration for the manager's email.
+        this.managerEmail = "saksham.kanojia@digitalwebsolutions.com"; // The manager's email address
+
+        this.chatMessages = document.getElementById("chatMessages");
+        this.messageInput = document.getElementById("messageInput");
+        this.sendBtn = document.getElementById("sendBtn");
+        this.typingIndicator = document.getElementById("typingIndicator");
+
+        // Questions array remains unchanged.
+        this.questions = [
+             { id: 1, text: "Your Full Name*", example: "(e.g., \"John Doe\")", mandatory: true },
+                { id: 2, text: "Your Email*", example: "(e.g., \"username@example.com\")", mandatory: true },
+                { id: 3, text: "Your Website*", example: "(e.g., \"https://www.johndoeco.com\" or \"wps.com\" )", mandatory: true },
+                { id: 4, text: "Your Phone Number*", example: "(e.g., \"+1 6031238497\")", mandatory: true },
+                { id: 5, text: "Give link of your In-House Style Guide", example: "(if available)", mandatory: false },
+                { id: 6, text: "If your brand were a person, how would you describe their personality and tone?", example: "", mandatory: false },
+                { id: 7, text: "How should your ideal customer feel after engaging with your brand\"s content?", example: "", mandatory: false },
+                { id: 8, text: "Can you share 2–3 examples of websites, posts, or ads you LOVE — and why?", example: "", mandatory: false },
+                { id: 9, text: "Share 1–2 examples of tone/styles you DISLIKE — and why?", example: "", mandatory: false },
+                { id: 10, text: "Are there any words, phrases, or topics your brand should ALWAYS use or avoid?", example: "", mandatory: false },
+                { id: 11, text: "Any additional content instructions?", example: "", mandatory: false },
+                { id: 12, text: "What are your top business goals for the next 6-12 months?", example: "", mandatory: false },
+                { id: 13, text: "Which products drive the most sales for your business?", example: "", mandatory: false },
+                { id: 14, text: "Who is your target customer?", example: "", mandatory: false },
+                { id: 15, text: "What is your current monthly revenue range?", example: "", mandatory: false },
+                { id: 16, text: "What is your average order value (AOV)?", example: "", mandatory: false },
+                { id: 17, text: "How many active customers do you have monthly?", example: "", mandatory: false },
+                { id: 18, text: "What is your conversion rate?", example: "", mandatory: false },
+                { id: 19, text: "What is the average lifetime value (LTV) of a customer?", example: "", mandatory: false },
+                { id: 20, text: "Do you have a web development team or resource for website updates?", example: "", mandatory: false },
+                { id: 21, text: "Which marketing channels are you currently using?", example: "", mandatory: false },
+                { id: 22, text: "How effective are your current marketing efforts?", example: "", mandatory: false },
+                { id: 23, text: "Are you using email marketing? If yes, briefly describe your strategy.", example: "", mandatory: false },
+                { id: 24, text: "What is your current monthly marketing budget?", example: "", mandatory: false },
+                { id: 25, text: "Are there any current challenges in your marketing efforts?", example: "", mandatory: false },
+                { id: 26, text: "Which KPIs/metrics do you track and prioritize?", example: "", mandatory: false },
+                { id: 27, text: "What is your Customer Acquisition Cost (CAC)?", example: "", mandatory: false },
+                { id: 28, text: "What are your typical product profit margins?", example: "", mandatory: false },
+                { id: 29, text: "How do you manage customer retention?", example: "", mandatory: false },
+                { id: 30, text: "Who are your main competitors, and what makes you different?", example: "", mandatory: false },
+                { id: 31, text: "Any upcoming launches or changes we should know about?", example: "", mandatory: false },
+                { id: 32, text: "Thank you for completing the onboarding! We're now processing your responses and will send them to our team for review.", example: "", mandatory: false }
+   
+        ];
+
+        this.tips = [
+            "Remember, you can always update a previous answer by describing the question you want to change!",
+            "Feel free to ask for clarification if any question is unclear.",
+            "Your detailed answers help us tailor our services better for you!",
+            "We're here to help you every step of the way!"
+        ];
+
+        this.currentQuestionIndex = 0;
+        this.answered = {};
+        this.awaitingValidAnswer = false;
+        this.returnToIndex = -1;
+        this.isReanswering = false;
+        this.chatLog = [];
+        this.isCompleted = false;
+
+        this.init();
+        this.askNextQuestion();
+    }
+
+    init() {
+        this.sendBtn.addEventListener("click", () => this.sendMessage());
+        this.messageInput.addEventListener("keypress", e => {
+            if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                this.sendMessage();
+            }
+        });
+    }
+
+    // --- All your other methods like sendMessage, askNextQuestion, queryGPT, etc. remain the same ---
+    // --- The only functions that need to be changed are completeOnboarding and the new generateAndSendCSV ---
+    // --- Make sure to copy all your other existing functions into this script ---
+
+    async sendMessage() {
+        if (this.isCompleted) {
+            this.addMessage("bot", "Thank you! Your onboarding has been completed and sent to our team. 🎉");
+            return;
+        }
+
+        const message = this.messageInput.value.trim();
+        if (!message) return;
+
+        this.addMessage("user", message);
+        this.messageInput.value = "";
+        this.sendBtn.disabled = true;
+
+        const lower = message.toLowerCase();
+
+        if (this.isEditRequest(lower)) {
+            const questionId = await this.identifyQuestionFromUserInput(message);
+            
+            if (questionId) {
+                const questionIndex = this.questions.findIndex(q => q.id === questionId);
+                
+                if (questionIndex !== -1 && questionIndex < this.currentQuestionIndex) {
+                    this.returnToIndex = this.currentQuestionIndex;
+                    this.isReanswering = true;
+                    this.currentQuestionIndex = questionIndex;
+                    delete this.answered[questionId];
+                    
+                    const userName = this.answered[1] ? this.answered[1].split(" ")[0] : "";
+                    const greeting = userName ? `${userName}, ` : "";
+                    this.addMessage("bot", `Of course, ${greeting}let's update that question. Here it is again:`);
+                    setTimeout(() => {
+                        this.askCurrentQuestion();
+                    }, 500);
+                    this.sendBtn.disabled = false;
+                    return;
+                } else if (questionIndex === -1) {
+                    this.addMessage("bot", `I couldn't identify which question you'd like to update. Could you be more specific? For example, "update question 5" or mention specific keywords from the question.`);
+                    this.sendBtn.disabled = false;
+                    return;
+                } else if (questionIndex >= this.currentQuestionIndex) {
+                    this.addMessage("bot", `We haven't reached that question yet. We're currently on the question about ${this.questions[this.currentQuestionIndex].text.toLowerCase()}.`);
+                    this.sendBtn.disabled = false;
+                    return;
+                }
+            } else {
+                this.addMessage("bot", `I couldn't identify which question you'd like to update. Could you be more specific? For example, "update question 5" or mention specific keywords from the question you want to change.`);
+                this.sendBtn.disabled = false;
+                return;
+            }
+        }
+
+        if (/\b(skip|next|pass)\b/i.test(lower) && lower.includes("skip")) {
+            const currentQuestion = this.questions[this.currentQuestionIndex];
+            if (currentQuestion.mandatory) {
+                const userName = this.answered[1] ? this.answered[1].split(" ")[0] : "";
+                const greeting = userName ? `${userName}, ` : "";
+                this.addMessage("bot", `I understand ${greeting}but this is a required question for the onboarding process. Could you please provide a response? I'm here to help if you need clarification!`);
+            } else {
+                this.answered[currentQuestion.id] = "Skipped";
+                if (this.isReanswering) {
+                    this.currentQuestionIndex = this.returnToIndex;
+                    this.isReanswering = false;
+                    this.returnToIndex = -1;
+                    this.addMessage("bot", "Understood! I've noted that. Let's continue with our questions.");
+                    setTimeout(() => this.askNextQuestion(), 600);
+                } else {
+                    this.currentQuestionIndex++;
+                    this.addMessage("bot", "No problem! Moving on to the next question.");
+                    setTimeout(() => this.askNextQuestion(), 600);
+                }
+            }
+            this.sendBtn.disabled = false;
+            return;
+        }
+
+        const currentQuestion = this.questions[this.currentQuestionIndex];
+        const prompt = this.buildPrompt(currentQuestion, message, this.isReanswering);
+
+        this.showTyping();
+        const gptResponse = await this.queryGPT(prompt);
+        this.hideTyping();
+
+        this.addMessage("bot", gptResponse.message);
+
+        if (gptResponse.isValidAnswer) {
+            this.answered[currentQuestion.id] = message;
+
+            if (this.isReanswering) {
+                this.currentQuestionIndex = this.returnToIndex;
+                this.isReanswering = false;
+                this.returnToIndex = -1;
+                const userName = this.answered[1] ? this.answered[1].split(" ")[0] : "";
+                const greeting = userName ? `${userName}! ` : "";
+                this.addMessage("bot", `Perfect, ${greeting}I've updated that for you. Let's continue where we left off.`);
+                setTimeout(() => this.askNextQuestion(), 800);
+            } else {
+                this.currentQuestionIndex++;
+                
+                if (this.currentQuestionIndex >= this.questions.length) {
+                    await this.completeOnboarding();
+                } else {
+                    setTimeout(() => this.askNextQuestion(), 800);
+                }
+            }
+        }
+
+        this.sendBtn.disabled = false;
+    }
+
+    async completeOnboarding() {
+        if (this.isCompleted) return;
+
+        this.isCompleted = true;
+        const userName = this.answered[1] ? this.answered[1].split(" ")[0] : "";
+        const userEmail = this.answered[2] || "unknown@email.com";
+        const greeting = userName ? `${userName}! ` : "";
+
+        this.addMessage("bot", `That's all, ${greeting}🎉 Thank you for providing all the information. We're now processing your responses and sending them to our team...`);
+
+        try {
+            await this.sendDataToServer();
+            this.addMessage("bot", `✅ Perfect! Your responses have been successfully sent to our team for review. We'll be in touch soon with your personalized strategy!`);
+        } catch (error) {
+            console.error("Failed to send data to server:", error);
+            this.addMessage("bot", `⚠️ It seems there was a technical issue sending your responses. Please try again later. If the problem persists, please contact us directly. Your data has not been lost, we just couldn't send it automatically.`);
+        }
+    }
+
+    /**
+     * NEW FUNCTION: Sends all collected data to the serverless function.
+     */
+    async sendDataToServer() {
+        const userEmail = this.answered[2] || "unknown@email.com";
+        const userName = this.answered[1] || "Unknown User";
+
+        // The data payload to send to our serverless function
+        const payload = {
+            managerEmail: this.managerEmail,
+            userName: userName,
+            userEmail: userEmail,
+            questions: this.questions,
+            answered: this.answered,
+            chatLog: this.chatLog
+        };
+
+        // The endpoint for our serverless function on Netlify
+        const endpoint = "/.netlify/functions/send-email";
+
+        const response = await fetch(endpoint, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || "Server responded with an error");
+        }
+
+        return response.json();
+    }
+    
+    // All other helper functions (isEditRequest, identifyQuestionFromUserInput, etc.) remain the same
+    // Make sure to include them here.
+    isEditRequest(message) {
+        const editKeywords = [
+            "update", "change", "edit", "modify", "reanswer", "correct", "fix",
+            "i want to update", "i want to change", "i want to edit",
+            "can i update", "can i change", "can i edit"
+        ];
+        return editKeywords.some(keyword => message.includes(keyword));
+    }
+
+   // In public/index.html, inside the SmartOnboardingAssistant class
+
+async identifyQuestionFromUserInput(userInput) {
+    const prompt = `You are an intelligent question identifier. Your task is to identify which question the user wants to update based on their input.
+
+Here are all the available questions with their IDs:
+${this.questions.map(q => `${q.id}: ${q.text}`).join("\n")}
+
+User's request: "${userInput}"
+
+Analyze the user's input and determine which question they want to update. Look for:
+1. Direct question numbers (e.g., "question 5", "Q16")
+2. Keywords from question text (e.g., "tone", "personality", "AOV", "LTV", "revenue", "budget", etc)
+3. Context clues (e.g., "business goals", "target customer", "marketing channels", "email marketing", "business/company sales", etc)
+
+Return ONLY the question ID number (1-32) that best matches their request. If you cannot identify a specific question, return 0.
+
+Question ID:`;
+
+    try {
+        // --- THIS IS THE FIX ---
+        // Instead of calling fetch() directly, we reuse our own secure queryGPT function.
+        // The `queryGPT` function returns an object like { message: "...", isValidAnswer: ... }
+        // We only need the `message` part, which contains the raw response from the AI.
+        const gptResponse = await this.queryGPT(prompt);
+        const result = gptResponse.message.trim();
+        // --- END OF FIX ---
+
+        const questionId = parseInt(result);
+        
+        if (!isNaN(questionId) && questionId >= 1 && questionId <= this.questions.length) {
+            return questionId;
+        }
+    } catch (error) {
+        console.error("Error identifying question:", error);
+    }
+    
+    return null; // Return null if anything fails
+}
+
+
+    async askNextQuestion() {
+        if (this.currentQuestionIndex >= this.questions.length) {
+            await this.completeOnboarding();
+            return;
+        }
+        this.askCurrentQuestion();
+    }
+
+    askCurrentQuestion() {
+        const questionObj = this.questions[this.currentQuestionIndex];
+        if (questionObj.id === 32) {
+            this.addMessage("bot", questionObj.text);
+            setTimeout(() => {
+                this.completeOnboarding();
+            }, 2000);
+            return;
+        }
+        let promptText = this.personalizeQuestion(questionObj);
+        if (Math.random() < 0.3 && this.currentQuestionIndex > 4) {
+            const randomTip = this.tips[Math.floor(Math.random() * this.tips.length)];
+            promptText += `\n\n*💡Tip: ${randomTip}*`;
+        }
+        this.addMessage("bot", promptText);
+    }
+
+    personalizeQuestion(questionObj) {
+        let promptText = questionObj.text;
+        let example = questionObj.example;
+        switch (questionObj.id) {
+            case 2:
+                if (this.answered[1]) {
+                    const name = this.answered[1];
+                    const firstName = name.split(" ")[0].toLowerCase();
+                    const lastName = name.split(" ").slice(-1)[0].toLowerCase();
+                    example = `(e.g., \"${firstName}@company.com\" or \"${firstName}.${lastName}@gmail.com\")`;
+                }
+                break;
+            case 3:
+                if (this.answered[1]) {
+                    const name = this.answered[1];
+                    const companyName = name.replace(/\s+/g, "").toLowerCase();
+                    example = `(e.g., \"https://www.${companyName}.com\" or \"${companyName}.co\"  )`;
+                }
+                break;
+            case 6:
+                if (this.answered[1]) {
+                    const firstName = this.answered[1].split(" ")[0];
+                    promptText = `If your brand were a person like ${firstName}, how would you describe their personality and tone?`;
+                }
+                break;
+            case 14:
+                if (this.answered[1]) {
+                    const firstName = this.answered[1].split(" ")[0];
+                    promptText = `Who is your target customer, ${firstName}? Describe them in detail.`;
+                }
+                break;
+            case 21:
+                if (this.answered[3]) {
+                    promptText = `Which marketing channels are you currently using to drive traffic to ${this.answered[3]}?`;
+                }
+                break;
+            case 23:
+                if (this.answered[2]) {
+                    promptText = `Are you using email marketing with ${this.answered[2]}? If yes, briefly describe your strategy.`;
+                }
+                break;
+        }
+        if (questionObj.mandatory) {
+            promptText += " **(Required)**";
+        }
+        if (example) {
+            promptText += ` ${example}`;
+        }
+        return promptText;
+    }
+
+    buildPrompt(questionObj, userInput, isReanswering) {
+        const userName = this.answered[1] ? this.answered[1].split(" ")[0] : "";
+        const personalGreeting = userName ? `Hello ${userName}! ` : "";
+        return `You are Manus, an exceptionally warm, friendly, polite, humble, and engaging onboarding assistant. You are skilled at making users feel comfortable and valued throughout the conversation.
+
+${personalGreeting}Your primary goal is to guide users through onboarding questions with the utmost care, ensuring their responses are valid and helpful while maintaining a genuinely caring and supportive tone.
+
+---
+
+Current Question ID: ${questionObj.id}
+Current Question: "${questionObj.text}"
+User Response: "${userInput}"
+Is this a re-answer request? ${isReanswering ? "Yes" : "No"}
+Is this question mandatory? ${questionObj.mandatory ? "Yes" : "No"}
+
+Previous Answers Context:
+${Object.entries(this.answered).map(([id, answer]) => `Q${id}: ${answer}`).join("\n")}
+
+---
+
+CRITICAL INSTRUCTIONS:
+
+1. **NEVER Auto-Skip Questions:**
+   - If user says "I don't know", "not sure", "maybe", "I'm not certain" , "I don wanna share" or Intentional words like this - DO NOT skip the question
+   - Instead, provide helpful explanation, examples, and encouragement
+   - Only skip if user explicitly says "skip" or clearly indicates they don't want to share and not interested in question in follow up answer explain question again and ask for type 'skip'
+
+2. **Handle Uncertain Responses with Care:**
+   - If user seems uncertain or says "I don't know":
+     * Explain WHY this question is important
+     * Provide specific examples or scenarios
+     * Offer gentle encouragement: "No worries! Let me help you think through this..."
+     * Give them options or suggestions to consider
+     * If they still seem reluctant, politely mention they can type "skip" if they prefer not to answer
+
+3. **Validation Rules:**
+   - **Name (Q1):** Should be a proper name, not just single letters or numbers
+   - **Email (Q2):** Must be a valid email format with @ symbol and domain
+   - **Website (Q3):** Accept various formats (Any format like : domain.com, http://..., https://...  )
+   - **Phone (Q4):** Should look like a phone number with digits and optional formatting like number can be with or without country code like eg: (+1 9310277188 || 9310277188) ok consider that.
+   - **Mandatory Questions:** Cannot be skipped, provide extra help and encouragement
+   - **Optional Questions:** Can be skipped only if user explicitly requests it
+
+4. **Engagement & Personalization:**
+   - Use the user's name frequently and naturally
+   - Reference previous answers to show you're listening
+   - Be genuinely interested in their responses
+   - Show enthusiasm for their business/brand
+   - Use warm, encouraging language
+   - Be conversational, not robotic
+
+5. **Response Guidelines:**
+   - If valid answer: Provide enthusiastic, personalized confirmation
+   - If invalid answer: Gently explain what's needed with specific examples
+   - If uncertain response: Provide helpful explanation and examples, encourage them to try
+   - If re-answering: Acknowledge the update warmly
+   - Always maintain a supportive, patient tone
+
+6. **Examples of Engaging Responses:**
+   - "That's wonderful, [Name]! I love learning about your business."
+   - "I can tell you really care about your customers, [Name]. That's fantastic!"
+   - "No worries at all! Let me help you think through this..."
+   - "I understand this might seem tricky, but here's why it's helpful..."
+
+7. **Strict JSON Output:**
+   - Your response MUST be: {"message": "your engaging response", "isValidAnswer": true/false}
+   - Make your message warm, personal, and helpful
+
+Remember: You are not just collecting data - you are building a relationship and making the user feel valued and understood.
+
+JSON Response:`;
+    }
+
+    // In public/index.html, inside the SmartOnboardingAssistant class
+
+async queryGPT(prompt) {
+    try {
+        // The endpoint for our NEW serverless function
+        const endpoint = "/.netlify/functions/get-gpt-response";
+
+        const response = await fetch(endpoint, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            // Send the prompt to our backend function
+            body: JSON.stringify({ prompt: prompt })
+        });
+
+        const data = await response.json();
+
+        // The rest of the logic remains the same, as our backend
+        // forwards the exact response from OpenAI.
+        if (data.choices && data.choices.length > 0) {
+            const raw = data.choices[0].message.content.trim();
+            try {
+                const jsonResponse = JSON.parse(raw);
+                if (jsonResponse.message && typeof jsonResponse.isValidAnswer === "boolean") {
+                    return { message: jsonResponse.message, isValidAnswer: jsonResponse.isValidAnswer };
+                }
+            } catch (parseError) {
+                const jsonMatch = raw.match(/\{[^}]*"message"[^}]*"isValidAnswer"[^}]*\}/);
+                if (jsonMatch) {
+                    try {
+                        const extractedJson = JSON.parse(jsonMatch[0]);
+                        return { message: extractedJson.message, isValidAnswer: extractedJson.isValidAnswer };
+                    } catch (extractError) { console.error("Error parsing extracted JSON:", extractError); }
+                }
+            }
+            console.warn("Could not parse JSON response, treating as valid:", raw);
+            return { message: raw, isValidAnswer: true };
+        } else {
+            console.error("Error: No choices returned from GPT API", data);
+            return { message: "I apologize, but I'm having a technical moment. Could you please try again? I'm here to help!", isValidAnswer: false };
+        }
+    } catch (error) {
+        console.error("Error querying GPT:", error);
+        return { message: "I'm experiencing a brief technical issue. Please try again - I'm excited to continue our conversation!", isValidAnswer: false };
+    }
+}
+
+
+    addMessage(sender, text) {
+        const div = document.createElement("div");
+        div.className = `message ${sender}`;
+        const formattedText = text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+        div.innerHTML = `<div class="message-avatar">${sender === "bot" ? "🤖" : "👤"}</div><div class="message-content">${formattedText}</div>`;
+        this.chatMessages.appendChild(div);
+        this.chatLog.push({ timestamp: new Date().toISOString(), sender: sender, message: text });
+        this.scrollToBottom();
+    }
+
+    showTyping() {
+        if (this.typingIndicator) {
+            this.typingIndicator.style.display = "flex";
+            this.scrollToBottom();
+        }
+    }
+
+    hideTyping() {
+        if (this.typingIndicator) {
+            this.typingIndicator.style.display = "none";
+        }
+    }
+
+    scrollToBottom() {
+        setTimeout(() => {
+            this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
+        }, 100);
+    }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    new SmartOnboardingAssistant();
+});
+
+   
+
+</script>
+
+
+    
+    
+</body>
+</html>
+

@@ -1,0 +1,9 @@
+[build]
+  # This is the directory where your website's files are (HTML, JS, CSS)
+  publish = "public"
+  # This is the directory where your serverless functions are
+  functions = "netlify/functions"
+
+[functions]
+  # Specifies the Node.js version for the functions
+  node_bundler = "esbuild"
