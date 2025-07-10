@@ -378,11 +378,12 @@
                     this.addMessage("bot", `I couldn't identify which question you'd like to update. Could you be more specific? For example, "update question 5" or mention specific keywords from the question.`);
                     this.sendBtn.disabled = false;
                     return;
-                } else if (questionIndex >= this.currentQuestionIndex) {
-                    this.addMessage("bot", `We haven't reached that question yet. We're currently on the question about ${this.questions[this.currentQuestionIndex].text.toLowerCase()}.`);
-                    this.sendBtn.disabled = false;
-                    return;
                 }
+                //  else if (questionIndex >= this.currentQuestionIndex) {
+                //     this.addMessage("bot", `We haven't reached that question yet. We're currently on the question about ${this.questions[this.currentQuestionIndex].text.toLowerCase()}.`);
+                //     this.sendBtn.disabled = false;
+                //     return;
+                // }
             } else {
                 this.addMessage("bot", `I couldn't identify which question you'd like to update. Could you be more specific? For example, "update question 5" or mention specific keywords from the question you want to change.`);
                 this.sendBtn.disabled = false;
