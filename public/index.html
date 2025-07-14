@@ -1732,15 +1732,14 @@ JSON Response:`;
 <!-- script 4 update  -->
 
 
- 
-  <script>
-
+ <script>
+        
         class SmartOnboardingAssistant {
             constructor() {
-                // Your OpenAI API key remains here for the chatbot\'s conversation logic.
+                // Your OpenAI API key remains here for the chatbot's conversation logic.
 
-                // Configuration for the manager\'s email.
-                this.managerEmail = "saksham.kanojia@digitalwebsolutions.com"; // The manager\'s email address
+                // Configuration for the manager's email.
+                this.managerEmail = "saksham.kanojia@digitalwebsolutions.com"; // The manager's email address
 
                 this.chatMessages = document.getElementById("chatMessages");
                 this.messageInput = document.getElementById("messageInput");
@@ -1755,7 +1754,7 @@ JSON Response:`;
                     { id: 4, text: "Your Phone Number*", example: "(e.g., \"+1 6031238497\")", mandatory: true },
                     { id: 5, text: "Give link of your In-House Style Guide", example: "(if available)", mandatory: false },
                     { id: 6, text: "If your brand were a person, how would you describe their personality and tone?", example: "", mandatory: false },
-                    { id: 7, text: "How should your ideal customer feel after engaging with your brand\\\"s content?", example: "", mandatory: false },
+                    { id: 7, text: "How should your ideal customer feel after engaging with your brand\"s content?", example: "", mandatory: false },
                     { id: 8, text: "Can you share 2–3 examples of websites, posts, or ads you LOVE — and why?", example: "", mandatory: false },
                     { id: 9, text: "Share 1–2 examples of tone/styles you DISLIKE — and why?", example: "", mandatory: false },
                     { id: 10, text: "Are there any words, phrases, or topics your brand should ALWAYS use or avoid?", example: "", mandatory: false },
@@ -1767,7 +1766,7 @@ JSON Response:`;
                     { id: 16, text: "What is your average order value (AOV)?", example: "", mandatory: false },
                     { id: 17, text: "How many active customers do you have monthly?", example: "", mandatory: false },
                     { id: 18, text: "What is your conversion rate?", example: "", mandatory: false },
-                    { id: 19, text: "What is your average lifetime value (LTV) of a customer?", example: "", mandatory: false },
+                    { id: 19, text: "What is the average lifetime value (LTV) of a customer?", example: "", mandatory: false },
                     { id: 20, text: "Do you have a web development team or resource for website updates?", example: "", mandatory: false },
                     { id: 21, text: "Which marketing channels are you currently using?", example: "", mandatory: false },
                     { id: 22, text: "How effective are your current marketing efforts?", example: "", mandatory: false },
@@ -1780,7 +1779,7 @@ JSON Response:`;
                     { id: 29, text: "How do you manage customer retention?", example: "", mandatory: false },
                     { id: 30, text: "Who are your main competitors, and what makes you different?", example: "", mandatory: false },
                     { id: 31, text: "Any upcoming launches or changes we should know about?", example: "", mandatory: false },
-                    { id: 32, text: "Thank you for completing the onboarding! We\'re now processing your responses and will send them to our team for review.", example: "", mandatory: false }
+                    { id: 32, text: "Thank you for completing the onboarding! We're now processing your responses and will send them to our team for review.", example: "", mandatory: false }
 
                 ];
 
@@ -1788,7 +1787,7 @@ JSON Response:`;
                     "Remember, you can always update a previous answer by describing the question you want to change!",
                     "Feel free to ask for clarification if any question is unclear.",
                     "Your detailed answers help us tailor our services better for you!",
-                    "We\'re here to help you every step of the way!"
+                    "We're here to help you every step of the way!"
                 ];
 
                 this.currentQuestionIndex = 0;
@@ -1798,6 +1797,7 @@ JSON Response:`;
                 this.isReanswering = false;
                 this.chatLog = [];
                 this.isCompleted = false;
+                this.awaitingSkipConfirmation = false; // New state for skip confirmation
 
                 this.init();
                 this.askNextQuestion();
@@ -1827,6 +1827,32 @@ JSON Response:`;
                 this.sendBtn.disabled = true;
 
                 const lower = message.toLowerCase();
+                const currentQuestion = this.questions[this.currentQuestionIndex];
+
+                // Handle skip confirmation
+                if (this.awaitingSkipConfirmation) {
+                    if (lower === 'skip') {
+                        this.answered[currentQuestion.id] = "Skipped";
+                        this.awaitingSkipConfirmation = false;
+                        if (this.isReanswering) {
+                            this.currentQuestionIndex = this.returnToIndex;
+                            this.isReanswering = false;
+                            this.returnToIndex = -1;
+                            this.addMessage("bot", "Understood! I've noted that. Let's continue with our questions.");
+                            setTimeout(() => this.askNextQuestion(), 600);
+                        } else {
+                            this.currentQuestionIndex++;
+                            this.addMessage("bot", "No problem! Moving on to the next question.");
+                            setTimeout(() => this.askNextQuestion(), 600);
+                        }
+                    } else {
+                        this.awaitingSkipConfirmation = false;
+                        this.addMessage("bot", "Got it! Please provide your answer for the current question or type 'skip' if you wish to skip it.");
+                        setTimeout(() => this.askCurrentQuestion(), 500);
+                    }
+                    this.sendBtn.disabled = false;
+                    return;
+                }
 
                 if (this.isEditRequest(lower)) {
                     const questionId = await this.identifyQuestionFromUserInput(message);
@@ -1842,76 +1868,64 @@ JSON Response:`;
 
                             const userName = this.answered[1] ? this.answered[1].split(" ")[0] : "";
                             const greeting = userName ? `${userName}, ` : "";
-                            this.addMessage("bot", `Of course, ${greeting}let\'s update that question. Here it is again:`);
+                            this.addMessage("bot", `Of course, ${greeting}let's update that question. Here it is again:`);
                             setTimeout(() => {
                                 this.askCurrentQuestion();
                             }, 500);
                             this.sendBtn.disabled = false;
                             return;
-                        } else if (questionId === 0) { // If identifyQuestionFromUserInput returns 0, it means it couldn\'t identify a question
-                            this.addMessage("bot", `I couldn\'t identify which question you\'d like to update. Could you be more specific? For example, "update question 5" or mention specific keywords from the question.`);
+                        } else if (questionId === 0) { // If identifyQuestionFromUserInput returns 0, it means it couldn't identify a question
+                            this.addMessage("bot", `I couldn't identify which question you'd like to update. Could you be more specific? For example, "update question 5" or mention specific keywords from the question.`);
                             this.sendBtn.disabled = false;
                             return;
                         }
                     } else {
-                        this.addMessage("bot", `I couldn\'t identify which question you\'d like to update. Could you be more specific? For example, "update question 5" or mention specific keywords from the question you want to change.`);
+                        this.addMessage("bot", `I couldn't identify which question you'd like to update. Could you be more specific? For example, "update question 5" or mention specific keywords from the question you want to change.`);
                         this.sendBtn.disabled = false;
                         return;
                     }
                 }
 
-                if (/\\b(skip|next|pass)\\b/i.test(lower) && lower.includes("skip")) {
-                    const currentQuestion = this.questions[this.currentQuestionIndex];
-                    if (currentQuestion.mandatory) {
-                        const userName = this.answered[1] ? this.answered[1].split(" ")[0] : "";
-                        const greeting = userName ? `${userName}, ` : "";
-                        this.addMessage("bot", `I understand ${greeting}but this is a required question for the onboarding process. Could you please provide a response? I\'m here to help if you need clarification!`);
-                    } else {
-                        this.answered[currentQuestion.id] = "Skipped";
-                        if (this.isReanswering) {
-                            this.currentQuestionIndex = this.returnToIndex;
-                            this.isReanswering = false;
-                            this.returnToIndex = -1;
-                            this.addMessage("bot", "Understood! I\'ve noted that. Let\'s continue with our questions.");
-                            setTimeout(() => this.askNextQuestion(), 600);
-                        } else {
-                            this.currentQuestionIndex++;
-                            this.addMessage("bot", "No problem! Moving on to the next question.");
-                            setTimeout(() => this.askNextQuestion(), 600);
-                        }
-                    }
-                    this.sendBtn.disabled = false;
-                    return;
-                }
-
-                const currentQuestion = this.questions[this.currentQuestionIndex];
-
-                // *** ENHANCED HANDLING FOR QUESTION 5 (STYLE GUIDE LINK) ***
+                // Enhanced handling for Question 5 (In-House Style Guide)
                 if (currentQuestion.id === 5) {
-                    const urlRegex = /^(https?:\/\/)?(www\.)?[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?\.([a-zA-Z]{2,})(\/[^\s]*)?$/i;
+                    const urlRegex = /(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|[a-zA-Z0-9]+\.[^\s]{2,})/gi;
                     const containsLink = urlRegex.test(message);
 
-                    // Use a specific prompt for intent detection for Q5
-                    const promptForIntent = this.buildPromptForIntent(currentQuestion, message, this.isReanswering);
-                    this.showTyping();
-                    const gptIntentResponse = await this.queryGPT(promptForIntent);
-                    this.hideTyping();
-
-                    // If GPT indicates it\'s not a valid answer (e.g., asking for clarification, expressing uncertainty)
-                    if (!gptIntentResponse.isValidAnswer) {
-                        this.addMessage("bot", gptIntentResponse.message); // GPT\'s graceful response
+                    if (lower.includes("meaning") || lower.includes("what is") || lower.includes("explain")) {
+                        this.addMessage("bot", "An **In-House Style Guide** is a document that outlines the specific rules and guidelines for all content created by a company. It ensures consistency in tone, voice, grammar, punctuation, and formatting across all communications. It's crucial for maintaining a unified brand identity. Do you have a link to such a guide, or would you like to skip this question? Please provide a link or type 'skip'.");
                         this.sendBtn.disabled = false;
-                        return; // Stop and wait for user\'s next input
-                    }
-
-                    // If GPT thinks it\'s a valid answer, but it doesn\'t contain a link, re-prompt firmly
-                    if (!containsLink) {
-                        this.addMessage("bot", "I appreciate your response! For the In-House Style Guide, we specifically need a link (URL) or a response that includes a link. Could you please provide that? If you don\'t have one, you can type \'skip\'.");
+                        return;
+                    } else if (lower === 'skip') {
+                        if (currentQuestion.mandatory) {
+                            const userName = this.answered[1] ? this.answered[1].split(" ")[0] : "";
+                            const greeting = userName ? `${userName}, ` : "";
+                            this.addMessage("bot", `I understand ${greeting}but this is a required question for the onboarding process. Could you please provide a response? I'm here to help if you need clarification!`);
+                        } else {
+                            this.addMessage("bot", "Understood. If you're sure you want to skip, please type 'skip' again to confirm.");
+                            this.awaitingSkipConfirmation = true;
+                        }
+                        this.sendBtn.disabled = false;
+                        return;
+                    } else if (!containsLink) {
+                        this.addMessage("bot", "I appreciate your response! For the In-House Style Guide, we specifically need a link (URL) or a response that includes a link. If you don't have one, you can type 'skip'.");
                         this.sendBtn.disabled = false;
                         return; // Stop further processing and re-ask the question
                     }
                 }
-                // *** END ENHANCED HANDLING ***
+
+                // General skip handling for other questions
+                if (currentQuestion.id !== 5 && (lower === 'skip' || lower.includes("skip"))) {
+                    if (currentQuestion.mandatory) {
+                        const userName = this.answered[1] ? this.answered[1].split(" ")[0] : "";
+                        const greeting = userName ? `${userName}, ` : "";
+                        this.addMessage("bot", `I understand ${greeting}but this is a required question for the onboarding process. Could you please provide a response? I'm here to help if you need clarification!`);
+                    } else {
+                        this.addMessage("bot", "Understood. If you're sure you want to skip, please type 'skip' again to confirm.");
+                        this.awaitingSkipConfirmation = true;
+                    }
+                    this.sendBtn.disabled = false;
+                    return;
+                }
 
                 const prompt = this.buildPrompt(currentQuestion, message, this.isReanswering);
 
@@ -1930,10 +1944,10 @@ JSON Response:`;
                         this.returnToIndex = -1;
                         const userName = this.answered[1] ? this.answered[1].split(" ")[0] : "";
                         const greeting = userName ? `${userName}! ` : "";
-                        this.addMessage("bot", `Perfect, ${greeting}I\'ve updated that for you. Let\'s continue where we left off.`);
+                        this.addMessage("bot", `Perfect, ${greeting}I've updated that for you. Let's continue where we left off.`);
                         setTimeout(() => this.askNextQuestion(), 800);
                     } else {
-                        // *** MODIFICATION START: Conditional question skipping logic ***
+                        // MODIFICATION START: Conditional question skipping logic
                         // Check if the current question is the style guide question (ID 5)
                         if (currentQuestion.id === 5) {
                             // Find the index for question 12
@@ -1941,16 +1955,16 @@ JSON Response:`;
                             if (question12Index !== -1) {
                                 // If an answer was provided (not skipped), jump to question 12
                                 this.currentQuestionIndex = question12Index;
-                                this.addMessage("bot", "Thank you for the style guide! That\'s very helpful. We\'ll skip ahead a bit.");
+                                this.addMessage("bot", "Thank you for the style guide! That's very helpful. We'll skip ahead a bit.");
                             } else {
-                                // Fallback in case question 12 isn\'t found
+                                // Fallback in case question 12 isn't found
                                 this.currentQuestionIndex++;
                             }
                         } else {
                             // Normal progression for all other questions
                             this.currentQuestionIndex++;
                         }
-                        // *** MODIFICATION END ***
+                        // MODIFICATION END
 
                         if (this.currentQuestionIndex >= this.questions.length) {
                             await this.completeOnboarding();
@@ -1971,14 +1985,14 @@ JSON Response:`;
                 const userEmail = this.answered[2] || "unknown@email.com";
                 const greeting = userName ? `${userName}! ` : "";
 
-                this.addMessage("bot", `That\'s all, ${greeting}🎉 Thank you for providing all the information. We\'re now processing your responses and sending them to our team...`);
+                this.addMessage("bot", `That's all, ${greeting}🎉 Thank you for providing all the information. We're now processing your responses and sending them to our team...`);
 
                 try {
                     await this.sendDataToServer();
-                    this.addMessage("bot", `✅ Perfect! Your responses have been successfully sent to our team for review. We\'ll be in touch soon with your personalized strategy!`);
+                    this.addMessage("bot", `✅ Perfect! Your responses have been successfully sent to our team for review. We'll be in touch soon with your personalized strategy!`);
                 } catch (error) {
                     console.error("Failed to send data to server:", error);
-                    this.addMessage("bot", `⚠️ It seems there was a technical issue sending your responses. Please try again later. If the problem persists, please contact us directly. Your data has not been lost, we just couldn\'t send it automatically.`);
+                    this.addMessage("bot", `⚠️ It seems there was a technical issue sending your responses. Please try again later. If the problem persists, please contact us directly. Your data has not been lost, we just couldn't send it automatically.`);
                 }
             }
 
@@ -2023,7 +2037,7 @@ JSON Response:`;
             }
 
             async identifyQuestionFromUserInput(userInput) {
-                const prompt = `You are an intelligent question identifier. Your task is to identify which question the user wants to update based on their input.\n\nHere are all the available questions with their IDs:\n${this.questions.map(q => `${q.id}: ${q.text}`).join("\\n")}\n\nUser\'s request: "${userInput}"\n\nAnalyze the user\'s input and determine which question they want to update. Look for:\n1. Direct question numbers (e.g., "question 5", "Q16")\n2. Keywords from question text (e.g., "tone", "personality", "AOV", "LTV", "revenue", "budget", etc)\n3. Context clues (e.g., "business goals", "target customer", "marketing channels", "email marketing", "business/company sales", etc)\n\nReturn ONLY the question ID number (1-32) that best matches their request. If you cannot identify a specific question, return 0.\n\nQuestion ID:`;
+                const prompt = `You are an intelligent question identifier. Your task is to identify which question the user wants to update based on their input.\n\nHere are all the available questions with their IDs:\n${this.questions.map(q => `${q.id}: ${q.text}`).join("\n")}\n\nUser's request: "${userInput}"\n\nAnalyze the user's input and determine which question they want to update. Look for:\n1. Direct question numbers (e.g., "question 5", "Q16")\n2. Keywords from question text (e.g., "tone", "personality", "AOV", "LTV", "revenue", "budget", etc)\n3. Context clues (e.g., "business goals", "target customer", "marketing channels", "email marketing", "business/company sales", etc)\n\nReturn ONLY the question ID number (1-32) that best matches their request. If you cannot identify a specific question, return 0.\n\nQuestion ID:`;
 
                 try {
                     const gptResponse = await this.queryGPT(prompt);
@@ -2061,7 +2075,7 @@ JSON Response:`;
                 let promptText = this.personalizeQuestion(questionObj);
                 if (Math.random() < 0.3 && this.currentQuestionIndex > 4) {
                     const randomTip = this.tips[Math.floor(Math.random() * this.tips.length)];
-                    promptText += `\\n\\n*💡Tip: ${randomTip}*`;
+                    promptText += `\n\n*💡Tip: ${randomTip}*`;
                 }
                 this.addMessage("bot", promptText);
             }
@@ -2081,7 +2095,7 @@ JSON Response:`;
                     case 3:
                         if (this.answered[1]) {
                             const name = this.answered[1];
-                            const companyName = name.replace(/\\s+/g, "").toLowerCase();
+                            const companyName = name.replace(/\s+/g, "").toLowerCase();
                             example = `(e.g., \"https://www.${companyName}.com\" or \"${companyName}.co\"  )`;
                         }
                         break;
@@ -2120,19 +2134,27 @@ JSON Response:`;
             buildPrompt(questionObj, userInput, isReanswering) {
                 const userName = this.answered[1] ? this.answered[1].split(" ")[0] : "";
                 const personalGreeting = userName ? `Hello ${userName}! ` : "";
-                return `You are Wytlabs agent, an exceptionally warm, friendly, polite, humble, and engaging onboarding assistant. You are skilled at making users feel comfortable and valued throughout the conversation.\n\n${personalGreeting}Your primary goal is to guide users through onboarding questions with the utmost care, ensuring their responses are valid and helpful while maintaining a genuinely caring and supportive tone.\n\n---\n\nCurrent Question ID: ${questionObj.id}\nCurrent Question: "${questionObj.text}"\nUser Response: "${userInput}"\nIs this a re-answer request? ${isReanswering ? "Yes" : "No"}\nIs this question mandatory? ${questionObj.mandatory ? "Yes" : "No"}\n\nPrevious Answers Context:\n${Object.entries(this.answered).map(([id, answer]) => `Q${id}: ${answer}`).join("\\n")}\n\n---\n\nCRITICAL INSTRUCTIONS:\n\n1. **NEVER Auto-Skip Questions:**\n   - If user says "I don\'t know", "I dont have one ", "not sure", "maybe", "I\'m not certain" , "I don wanna share" or Intentional words like this - DO NOT skip the question\n   - Instead, provide helpful explanation, examples, and encouragement\n   - Only skip if user explicitly says "skip" or clearly indicates they don\'t want to share and not interested in question in follow up answer explain question again and ask for type \'skip\'\n\n2. **Handle Uncertain Responses with Care:**\n   - If user seems uncertain or says "I don\'t know":\n     * Explain WHY this question is important\n     * Provide specific examples or scenarios\n     * Offer gentle encouragement: "No worries! Let me help you think through this..."\n     * Give them options or suggestions to consider\n     * If they still seem reluctant, politely mention they can type "skip" if they prefer not to answer\n
-3. **Validation Rules:**\n   - **Name (Q1):** Should be a proper name, not just single letters or numbers or no restriction of upper and lower case in naming ,\n   - **Email (Q2):** Must be a valid email format with @ symbol and domain\n   - **Website (Q3):** Accept various formats (Any format like : domain.com, http://..., https://...  )\n   - **Phone (Q4):** Should look like a phone number with digits and optional formatting like number can be with or without country code like eg: (+1 9310277188 || 9310277188) ok consider that.\n   - **Mandatory Questions:** Cannot be skipped, provide extra help and encouragement\n   - **Optional Questions:** Can be skipped only if user explicitly requests it\n   - **In-House Style Guide (Q5):** MUST contain a valid URL (e.g., http://example.com, https://www.example.com, www.example.com, example.com). It can also include additional text alongside the URL. If no valid URL is detected, the answer is invalid.\n\n4. **Engagement & Personalization:**\n   - Use the user\'s name frequently and naturally\n   - Reference previous answers to show you\'re listening\n   - Be genuinely interested in their responses\n   - Show enthusiasm for their business/brand\n   - Use warm, encouraging language\n   - Be conversational, not robotic\n\n5. **Response Guidelines:**\n   - If valid answer: Provide enthusiastic, personalized confirmation\n   - If invalid answer: Gently explain what\'s needed with specific examples\n   - If uncertain response: Provide helpful explanation and examples, encourage them to try\n   - If re-answering: Acknowledge the update warmly\n   - Always maintain a supportive, patient tone\n\n6. **Examples of Engaging Responses:**\n   - "That\'s wonderful, [Name]! I love learning about your business."\n   - "I can tell you really care about your customers, [Name]. That\'s fantastic!"\n   - "No worries at all! Let me help you think through this..."\n   - "I understand this might seem tricky, but here\'s why it\'s helpful."\n\n7. **Strict JSON Output:**\n   - Your response MUST be: {\"message\": \"your engaging response\", \"isValidAnswer\": true/false}\n   - Make your message warm, personal, and helpful\n
+                let prompt = `You are Wytlabs agent, an exceptionally warm, friendly, polite, humble, and engaging onboarding assistant. You are skilled at making users feel comfortable and valued throughout the conversation.\n\n${personalGreeting}Your primary goal is to guide users through onboarding questions with the utmost care, ensuring their responses are valid and helpful while maintaining a genuinely caring and supportive tone.\n\n---\n\nCurrent Question ID: ${questionObj.id}\nCurrent Question: "${questionObj.text}"\nUser Response: "${userInput}"\nIs this a re-answer request? ${isReanswering ? "Yes" : "No"}\nIs this question mandatory? ${questionObj.mandatory ? "Yes" : "No"}\n\nPrevious Answers Context:\n${Object.entries(this.answered).map(([id, answer]) => `Q${id}: ${answer}`).join("\n")}\n\n---\n\nCRITICAL INSTRUCTIONS:\n\n1. **NEVER Auto-Skip Questions:**\n   - If user says "I don't know", "I don't have one", "not sure", "maybe", "I'm not certain", "I don't wanna share" or similar intentional words - DO NOT skip the question.\n   - Instead, provide helpful explanation, examples, and encouragement.\n   - Only skip if user explicitly says "skip" or clearly indicates they don't want to share and are not interested in the question. In a follow-up answer, explain the question again and ask them to type 'skip' to confirm.\n
+2. **Handle Uncertain Responses with Care:**\n   - If user seems uncertain or says "I don't know":\n     * Explain WHY this question is important.\n     * Provide specific examples or scenarios.\n     * Offer gentle encouragement: "No worries! Let me help you think through this..."\n     * Give them options or suggestions to consider.\n     * If they still seem reluctant, politely mention they can type "skip" if they prefer not to answer.\n
+3. **Validation Rules:**\n   - **Name (Q1):** Should be a proper name, not just single letters or numbers or no restriction of upper and lower case in naming.\n   - **Email (Q2):** Must be a valid email format with @ symbol and domain.\n   - **Website (Q3):** Accept various formats (Any format like : domain.com, http://..., https://... ).\n   - **Phone (Q4):** Should look like a phone number with digits and optional formatting like number can be with or without country code like eg: (+1 9310277188 || 9310277188) ok consider that.\n   - **Mandatory Questions:** Cannot be skipped, provide extra help and encouragement.\n   - **Optional Questions:** Can be skipped only if user explicitly requests it.\n   - **In-House Style Guide (Q5):** MUST contain a valid URL (e.g., http://example.com, https://www.example.com, www.example.com, example.com). It can also include additional text alongside the URL. If no valid URL is detected, the answer is invalid.\n
+4. **Engagement & Personalization:**\n   - Use the user's name frequently and naturally.\n   - Reference previous answers to show you're listening.\n   - Be genuinely interested in their responses.\n   - Show enthusiasm for their business/brand.\n   - Use warm, encouraging language.\n   - Be conversational, not robotic.\n
+5. **Response Guidelines:**\n   - If valid answer: Provide enthusiastic, personalized confirmation.\n   - If invalid answer: Gently explain what's needed with specific examples.\n   - If uncertain response: Provide helpful explanation and examples, encourage them to try.\n   - If re-answering: Acknowledge the update warmly.\n   - Always maintain a supportive, patient tone.\n
+6. **Examples of Engaging Responses:**\n   - "That's wonderful, [Name]! I love learning about your business."\n   - "I can tell you really care about your customers, [Name]. That's fantastic!"\n   - "No worries at all! Let me help you think through this..."\n   - "I understand this might seem tricky, but here's why it's helpful."\n
+7. **Strict JSON Output:**\n   - Your response MUST be: {"message": "your engaging response", "isValidAnswer": true/false}\n   - Make your message warm, personal, and helpful.\n
 Remember: You are not just collecting data - you are building a relationship and making the user feel valued and understood.\n
 JSON Response:`;
-            }
 
-            // New prompt specifically for intent detection for Q5
-            buildPromptForIntent(questionObj, userInput, isReanswering) {
-                const userName = this.answered[1] ? this.answered[1].split(" ")[0] : "";
-                const personalGreeting = userName ? `Hello ${userName}! ` : "";
-                return `You are Wytlabs agent, an exceptionally warm, friendly, polite, humble, and engaging onboarding assistant. Your primary goal is to guide users through onboarding questions with the utmost care, ensuring their responses are valid and helpful while maintaining a genuinely caring and supportive tone.\n\n---\n\nCurrent Question ID: ${questionObj.id}\nCurrent Question: "${questionObj.text}"\nUser Response: "${userInput}"\nIs this a re-answer request? ${isReanswering ? "Yes" : "No"}\nIs this question mandatory? ${questionObj.mandatory ? "Yes" : "No"}\n\nPrevious Answers Context:\n${Object.entries(this.answered).map(([id, answer]) => `Q${id}: ${answer}`).join("\\n")}\n\n---\n\nCRITICAL INSTRUCTIONS FOR INTENT DETECTION (Q5 ONLY):\n\n1. **Analyze User\'s Intent for Q5:**\n   - If the user\'s response to the "In-House Style Guide" question (Q5) indicates they are asking for clarification, the meaning of the question, or expressing uncertainty (e.g., "What is a style guide?", "I don\'t understand", "What do you mean by that?", "I\'m not sure what that is"), then:\n     * Set \"isValidAnswer\": false.\n     * Provide a helpful, empathetic explanation of what an "In-House Style Guide" is and why it\'s important.\n     * Gently re-ask the question, emphasizing that a link is preferred but also offering the option to type \'skip\' if they truly don\'t have one or wish to bypass it.\n     * Example message: "That\'s a great question! An In-House Style Guide is a document that outlines the rules and standards for all content created by your brand, ensuring consistency in tone, language, and visuals. It helps maintain a unified brand voice across all platforms. Do you have a link to one, or would you like to provide one? If not, you can simply type \'skip\'."\n\n   - If the user\'s response indicates they do not have a style guide or explicitly state they don\'t want to provide one (e.g., "I don\'t have one", "No", "Not available", "Don\'t want to share"), then:\n     * Set \"isValidAnswer\": false.\n     * Acknowledge their response gracefully.\n     * Firmly, but politely, instruct them to type \'skip\' if they wish to proceed without providing a link.\n     * Example message: "Understood! If you don\'t have an In-House Style Guide or prefer not to share it, please type \'skip\' to move on to the next question. No worries at all!"\n\n   - If the user\'s response contains a valid URL (as determined by the regex in sendMessage) or is a general statement that doesn\'t fall into the above categories (e.g., a conversational response that isn\'t a direct question or refusal), then:\n     * Set \"isValidAnswer\": true.\n     * Provide a brief, positive acknowledgement. The main sendMessage function will then handle the URL validation.\n     * Example message: "Thank you for that!"\n\n2. **Strict JSON Output:**\n   - Your response MUST be: {\"message\": \"your engaging response\", \"isValidAnswer\": true/false}\n   - Make your message warm, personal, and helpful\n
-Remember: You are not just collecting data - you are building a relationship and making the user feel valued and understood.\n
-JSON Response:`;
+                // Add specific instructions for Question 5 if the user asks for meaning
+                if (questionObj.id === 5 && (userInput.toLowerCase().includes("meaning") || userInput.toLowerCase().includes("what is") || userInput.toLowerCase().includes("explain"))) {
+                    prompt += `\n\nSPECIAL INSTRUCTION FOR Q5 MEANING:\n- The user is asking for the meaning of "In-House Style Guide".\n- Provide a clear, concise explanation of what an In-House Style Guide is and why it's important.\n- After explaining, gently re-ask for the link or confirm if they wish to skip by typing 'skip'.\n- Set isValidAnswer to false as this is not a direct answer to the question, but a clarification request.`;
+                }
+
+                // Add specific instructions for skip confirmation
+                if (questionObj.id !== 5 && (userInput.toLowerCase() === 'skip' || userInput.toLowerCase().includes("skip"))) {
+                    prompt += `\n\nSPECIAL INSTRUCTION FOR SKIP CONFIRMATION:\n- The user has indicated a desire to skip this question.\n- If the question is mandatory, gently remind them it's required and offer further assistance.\n- If the question is optional, ask them to confirm by typing 'skip' again.\n- Set isValidAnswer to false as this is a conversational turn, not a direct answer.`;
+                }
+
+                return prompt;
             }
 
             async queryGPT(prompt) {
@@ -2169,11 +2191,11 @@ JSON Response:`;
                         return { message: raw, isValidAnswer: true };
                     } else {
                         console.error("Error: No choices returned from GPT API", data);
-                        return { message: "I apologize, but I\'m having a technical moment. Could you please try again? I\'m here to help!", isValidAnswer: false };
+                        return { message: "I apologize, but I'm having a technical moment. Could you please try again? I'm here to help!", isValidAnswer: false };
                     }
                 } catch (error) {
                     console.error("Error querying GPT:", error);
-                    return { message: "I\'m experiencing a brief technical issue. Please try again - I\'m excited to continue our conversation!", isValidAnswer: false };
+                    return { message: "I'm experiencing a brief technical issue. Please try again - I'm excited to continue our conversation!", isValidAnswer: false };
                 }
             }
 
@@ -2181,8 +2203,8 @@ JSON Response:`;
             addMessage(sender, text) {
                 const div = document.createElement("div");
                 div.className = `message ${sender}`;
-                const formattedText = text.replace(/\\*\\*(.*?)\\*\\*/g, "<strong>$1</strong>");
-                div.innerHTML = `<div class="message-avatar">${sender === "bot" ? "👨🏻‍💻" : "👤"}</div><div class="message-content">${formattedText}</div>`;
+                const formattedText = text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+                div.innerHTML = `<div class="message-avatar">${sender === "bot" ? "👨🏻‍💻" : ""}</div><div class="message-content">${formattedText}</div>`;
                 this.chatMessages.appendChild(div);
                 this.chatLog.push({ timestamp: new Date().toISOString(), sender: sender, message: text });
                 this.scrollToBottom();
@@ -2216,6 +2238,9 @@ JSON Response:`;
 
     </script>
 
+
+ 
+  
 
 
 
