@@ -1887,45 +1887,45 @@ JSON Response:`;
                 }
 
                 // Removed: Enhanced handling for Question 5 (In-House Style Guide)
-                // if (currentQuestion.id === 5) {
-                //     const urlRegex = /(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|[a-zA-Z0-9]+\.[^\s]{2,})/gi;
-                //     const containsLink = urlRegex.test(message);
+                if (currentQuestion.id === 5) {
+                    const urlRegex = /(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|[a-zA-Z0-9]+\.[^\s]{2,})/gi;
+                    const containsLink = urlRegex.test(message);
 
-                //     if (lower.includes("meaning") || lower.includes("what is") || lower.includes("explain")) {
-                //         this.addMessage("bot", "An **In-House Style Guide** is a document that outlines the specific rules and guidelines for all content created by a company. It ensures consistency in tone, voice, grammar, punctuation, and formatting across all communications. It's crucial for maintaining a unified brand identity. Do you have a link to such a guide, or would you like to skip this question? Please provide a link or type 'skip'.");
-                //         this.sendBtn.disabled = false;
-                //         return;
-                //     } else if (lower === 'skip') {
-                //         if (currentQuestion.mandatory) {
-                //             const userName = this.answered[1] ? this.answered[1].split(" ")[0] : "";
-                //             const greeting = userName ? `${userName}, ` : "";
-                //             this.addMessage("bot", `I understand ${greeting}but this is a required question for the onboarding process. Could you please provide a response? I'm here to help if you need clarification!`);
-                //         } else {
-                //             this.addMessage("bot", "Understood. If you're sure you want to skip, please type 'skip' again to confirm.");
-                //             this.awaitingSkipConfirmation = true;
-                //         }
-                //         this.sendBtn.disabled = false;
-                //         return;
-                //     } else if (!containsLink) {
-                //         this.addMessage("bot", "I appreciate your response! For the In-House Style Guide, we specifically need a link (URL) or a response that includes a link. If you don't have one, you can type 'skip'.");
-                //         this.sendBtn.disabled = false;
-                //         return; // Stop further processing and re-ask the question
-                //     }
-                // }
+                    if (lower.includes("meaning") || lower.includes("what is") || lower.includes("explain")) {
+                        this.addMessage("bot", "An **In-House Style Guide** is a document that outlines the specific rules and guidelines for all content created by a company. It ensures consistency in tone, voice, grammar, punctuation, and formatting across all communications. It's crucial for maintaining a unified brand identity. Do you have a link to such a guide, or would you like to skip this question? Please provide a link or type 'skip'.");
+                        this.sendBtn.disabled = false;
+                        return;
+                    } else if (lower === 'skip') {
+                        if (currentQuestion.mandatory) {
+                            const userName = this.answered[1] ? this.answered[1].split(" ")[0] : "";
+                            const greeting = userName ? `${userName}, ` : "";
+                            this.addMessage("bot", `I understand ${greeting}but this is a required question for the onboarding process. Could you please provide a response? I'm here to help if you need clarification!`);
+                        } else {
+                            this.addMessage("bot", "Understood. If you're sure you want to skip, please type 'skip' again to confirm.");
+                            this.awaitingSkipConfirmation = true;
+                        }
+                        this.sendBtn.disabled = false;
+                        return;
+                    } else if (!containsLink) {
+                        this.addMessage("bot", "I appreciate your response! For the In-House Style Guide, we specifically need a link (URL) or a response that includes a link. If you don't have one, you can type 'skip'.");
+                        this.sendBtn.disabled = false;
+                        return; // Stop further processing and re-ask the question
+                    }
+                }
 
                 // Removed: General skip handling for other questions
-                // if (currentQuestion.id !== 5 && (lower === 'skip' || lower.includes("skip"))) {
-                //     if (currentQuestion.mandatory) {
-                //         const userName = this.answered[1] ? this.answered[1].split(" ")[0] : "";
-                //         const greeting = userName ? `${userName}, ` : "";
-                //         this.addMessage("bot", `I understand ${greeting}but this is a required question for the onboarding process. Could you please provide a response? I'm here to help if you need clarification!`);
-                //     } else {
-                //         this.addMessage("bot", "Understood. If you're sure you want to skip, please type 'skip' again to confirm.");
-                //         this.awaitingSkipConfirmation = true;
-                //     }
-                //     this.sendBtn.disabled = false;
-                //     return;
-                // }
+                if (currentQuestion.id !== 5 && (lower === 'skip' || lower.includes("skip"))) {
+                    if (currentQuestion.mandatory) {
+                        const userName = this.answered[1] ? this.answered[1].split(" ")[0] : "";
+                        const greeting = userName ? `${userName}, ` : "";
+                        this.addMessage("bot", `I understand ${greeting}but this is a required question for the onboarding process. Could you please provide a response? I'm here to help if you need clarification!`);
+                    } else {
+                        this.addMessage("bot", "Understood. If you're sure you want to skip, please type 'skip' again to confirm.");
+                        this.awaitingSkipConfirmation = true;
+                    }
+                    this.sendBtn.disabled = false;
+                    return;
+                }
 
                 const prompt = this.buildPrompt(currentQuestion, message, this.isReanswering);
 
@@ -2136,7 +2136,7 @@ JSON Response:`;
                 const personalGreeting = userName ? `Hello ${userName}! ` : "";
                 let prompt = `You are Wytlabs agent, an exceptionally warm, friendly, polite, humble, and engaging onboarding assistant. You are skilled at making users feel comfortable and valued throughout the conversation.\n\n${personalGreeting}Your primary goal is to guide users through onboarding questions with the utmost care, ensuring their responses are valid and helpful while maintaining a genuinely caring and supportive tone.\n\n---\n\nCurrent Question ID: ${questionObj.id}\nCurrent Question: "${questionObj.text}"\nUser Response: "${userInput}"\nIs this a re-answer request? ${isReanswering ? "Yes" : "No"}\nIs this question mandatory? ${questionObj.mandatory ? "Yes" : "No"}\n\nPrevious Answers Context:\n${Object.entries(this.answered).map(([id, answer]) => `Q${id}: ${answer}`).join("\n")}\n\n---\n\nCRITICAL INSTRUCTIONS:\n\n1. **NEVER Auto-Skip Questions:**\n   - If user says "I don't know", "I don't have one", "not sure", "maybe", "I'm not certain", "I don't wanna share" or similar intentional words - DO NOT skip the question.\n   - Instead, provide helpful explanation, examples, and encouragement.\n   - Only skip if user explicitly says "skip" or clearly indicates they don't want to share and are not interested in the question. If they say "skip", confirm by asking them to type 'skip' again. If they type 'skip' again, then mark the question as skipped and move to the next question.\n
 2. **Handle Uncertain Responses with Care:**\n   - If user seems uncertain or says "I don't know":\n     * Explain WHY this question is important.\n     * Provide specific examples or scenarios.\n     * Offer gentle encouragement: "No worries! Let me help you think through this..."\n     * Give them options or suggestions to consider.\n     * If they still seem reluctant, politely mention they can type "skip" if they prefer not to answer.\n
-3. **Validation Rules:**\n   - **Name (Q1):** Should be a proper name, not just single letters or numbers or no restriction of upper and lower case in naming.\n   - **Email (Q2):** Must be a valid email format with @ symbol and domain.\n   - **Website (Q3):** Accept various formats (Any format like : domain.com, http://..., https://... ).\n   - **Phone (Q4):** Should look like a phone number with digits and optional formatting like number can be with or without country code like eg: (+1 9310277188 || 9310277188) ok consider that.\n   - **Mandatory Questions:** Cannot be skipped, provide extra help and encouragement.\n   - **Optional Questions:** Can be skipped only if user explicitly requests it.\n   - **In-House Style Guide (Q5):** MUST contain a valid URL (e.g., http://example.com, https://www.example.com, www.example.com, example.com). It can also include additional text alongside the URL. If no valid URL is detected, the answer is invalid.\n
+3. **Validation Rules:**\n   - **Name (Q1):** Should be a proper name, not just single letters or numbers or no restriction of upper and lower case in naming.\n   - **Email (Q2):** Must be a valid email format with @ symbol and domain.\n   - **Website (Q3):** Accept various formats (Any format like : domain.com, http://..., https://... ).\n   - **Phone (Q4):** Should look like a phone number with digits and optional formatting like number can be with or without country code like eg: (+1 9310277188 || 9310277188) ok consider that.\n   - **Mandatory Questions:** Cannot be skipped, provide extra help and encouragement.\n   - **Optional Questions:** Can be skipped only if user explicitly requests it.\n   - **In-House Style Guide (Q5):** MUST contain a link could be any link. It can also include additional text alongside the URL.\n
 4. **Engagement & Personalization:**\n   - Use the user's name frequently and naturally.\n   - Reference previous answers to show you're listening.\n   - Be genuinely interested in their responses.\n   - Show enthusiasm for their business/brand.\n   - Use warm, encouraging language.\n   - Be conversational, not robotic.\n
 5. **Response Guidelines:**\n   - If valid answer: Provide enthusiastic, personalized confirmation.\n   - If invalid answer: Gently explain what's needed with specific examples.\n   - If uncertain response: Provide helpful explanation and examples, encourage them to try.\n   - If re-answering: Acknowledge the update warmly.\n   - Always maintain a supportive, patient tone.\n
 6. **Examples of Engaging Responses:**\n   - "That's wonderful, [Name]! I love learning about your business."\n   - "I can tell you really care about your customers, [Name]. That's fantastic!"\n   - "No worries at all! Let me help you think through this..."\n   - "I understand this might seem tricky, but here's why it's helpful."\n
