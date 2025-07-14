@@ -1901,7 +1901,7 @@ JSON Response:`;
                             const greeting = userName ? `${userName}, ` : "";
                             this.addMessage("bot", `I understand ${greeting}but this is a required question for the onboarding process. Could you please provide a response? I'm here to help if you need clarification!`);
                         } else {
-                            this.addMessage("bot", "Understood. If you're sure you want to skip, please type 'skip' again to confirm.");
+                            // this.addMessage("bot", "Understood. If you're sure you want to skip, please type 'skip' again to confirm.");
                             this.awaitingSkipConfirmation = true;
                         }
                         this.sendBtn.disabled = false;
