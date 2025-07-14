@@ -1690,7 +1690,7 @@ async queryGPT(prompt) {
         const div = document.createElement("div");
         div.className = `message ${sender}`;
         const formattedText = text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
-        div.innerHTML = `<div class="message-avatar">${sender === "bot" ? "🤖" : "👤"}</div><div class="message-content">${formattedText}</div>`;
+        div.innerHTML = `<div class="message-avatar">${sender === "bot" ? "👨🏻‍💻" : "🙋🏻‍♂️"}</div><div class="message-content">${formattedText}</div>`;
         this.chatMessages.appendChild(div);
         this.chatLog.push({ timestamp: new Date().toISOString(), sender: sender, message: text });
         this.scrollToBottom();
