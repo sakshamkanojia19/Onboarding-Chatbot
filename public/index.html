@@ -1424,7 +1424,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     const containsLink = urlRegex.test(message);
 
                     if (!containsLink) {
-                        this.addMessage("bot", "I appreciate your response! For the In-House Style Guide, we specifically need a link (URL) or a response that includes a link. Could you please provide that? If you don't have one, you can type 'skip'.");
+                        this.addMessage("bot", "I appreciate your response! we specifically need a link (URL) or a response that includes a link. Could you please provide that? If you don't have one, you can type 'skip' so that we can move to next question.");
                         this.sendBtn.disabled = false;
                         return; // Stop further processing and re-ask the question
                     }
@@ -1459,7 +1459,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             if (question12Index !== -1) {
                                 // If an answer was provided (not skipped), jump to question 12
                                 this.currentQuestionIndex = question12Index;
-                                this.addMessage("bot", "Thank you for the style guide! That's very helpful. We'll skip ahead a bit.");
+                                this.addMessage("bot", "Thank you for the style guide! That's very helpful.");
                             } else {
                                 // Fallback in case question 12 isn't found
                                 this.currentQuestionIndex++;
